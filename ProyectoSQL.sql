@@ -343,7 +343,7 @@ EXEC SP_ActualizarUsuarios
     GO
 --- Crear SP Delete
 
-CREATE PROCEDURE SP_EliminarUsuario
+CREATE OR ALTER PROCEDURE SP_EliminarUsuario
     @ID_Usuario INT
 AS
 BEGIN
