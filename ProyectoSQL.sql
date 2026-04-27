@@ -358,7 +358,7 @@ EXEC SP_ActualizarUsuarios
 
 
     GO
---- Crear SP Delete
+--- Crear SP Delete Logico
 
 CREATE OR ALTER PROCEDURE SP_EliminarUsuario
     @ID_Usuario INT
@@ -376,4 +376,18 @@ EXEC SP_EliminarUsuario
 
     GO
 
+-- Crear SP Delete Fisico
+
+CREATE OR ALTER PROCEDURE SP_EliminarUsuarioFisico
+    @ID_Usuario INT
+AS
+BEGIN
+    DELETE FROM T_Usuarios_Intergalacticos
+    WHERE ID_Usuario = @ID_Usuario;
+END;
+
+--Ejecutar SP Delete Fisico
+
+EXEC SP_EliminarUsuarioFisico
+    1;
     
