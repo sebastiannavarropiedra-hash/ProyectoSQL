@@ -42,7 +42,7 @@ export const getUsuarioById = async (req, res) => {
             .input("ID_Usuario", sql.Int, id)
             .execute("SP_LeerUsuariosPorID");
 
-        // Si tu SP devuelve solo un resultset:
+// Si tu SP devuelve solo un resultset:
         res.json(result.recordset);
 
     } catch (error) {
@@ -71,6 +71,62 @@ export const updateUsuario = async (req, res) => {
     }
     catch (error) {
         console.log(req.body);
+        console.log(error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+//SP Delete logico
+
+export const deleteLogico = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // 🔥 Validación
+        if (!id || isNaN(id)) {
+            return res.status(400).json({
+                msj_tipo: "warning",
+                msj_texto: "ID inválido"
+            });
+        }
+
+        const pool = await getConnection();
+
+        const result = await pool.request()
+            .input("ID_Usuario", sql.Int, parseInt(id))
+            .execute("SP_EliminarUsuario");
+
+        res.json(result.recordset);
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+//SP Delete Fisico
+
+export const deleteFisico = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // 🔥 Validación
+        if (!id || isNaN(id)) {
+            return res.status(400).json({
+                msj_tipo: "warning",
+                msj_texto: "ID inválido"
+            });
+        }
+
+        const pool = await getConnection();
+
+        const result = await pool.request()
+            .input("ID_Usuario", sql.Int, parseInt(id))
+            .execute("SP_EliminarUsuarioFisico");
+
+        res.json(result.recordset);
+
+    } catch (error) {
         console.log(error);
         res.status(500).json({ error: error.message });
     }
