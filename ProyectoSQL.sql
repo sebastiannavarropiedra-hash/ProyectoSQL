@@ -46,10 +46,12 @@ CREATE TABLE T_Usuarios_Intergalacticos
     Nombre_Usuario NVARCHAR(30) NOT NULL,
     Credencial_Espacial NVARCHAR(30) NOT NULL,
     Estado BIT NOT NULL,
-    ID_Perfil INT CONSTRAINT FK_Usuarios_Perfil FOREIGN KEY
+    ID_Perfil INT,
+     CONSTRAINT FK_Usuarios_Perfil FOREIGN KEY
     (ID_Perfil) REFERENCES T_Perfiles_Seguridad
     (ID_Perfil)
 );
+
 
 
 CREATE TABLE T_Ejemplares
@@ -247,39 +249,54 @@ CREATE OR ALTER PROCEDURE SP_LeerUsuariosPorID
     @ID_Usuario INT
 AS
 BEGIN
-SET NOCOUNT ON;
-BEGIN TRY 
+    SET NOCOUNT ON;
 
-    BEGIN
-            --verificacion
-            IF @Id_Cliente <= 0
-				BEGIN
+    BEGIN TRY
 
-					SELECT ''
-
-					SELECT 'warning' AS msj_tipo, 'Debes ingresar un id valido.' AS msj_texto; 
-
-				END
-
+        -- Validar ID
+        IF @ID_Usuario IS NULL OR @ID_Usuario <= 0
         BEGIN
-            SELECT ID_Usuario, Nombre_Usuario, Credencial_Espacial, ID_Perfil, Estado
+            SELECT 
+                'warning' AS msj_tipo, 
+                'Debes ingresar un ID válido.' AS msj_texto;
+            RETURN;
+        END
+
+        -- Verificar existencia
+        IF EXISTS (
+            SELECT 1 
+            FROM T_Usuarios_Intergalacticos
+            WHERE ID_Usuario = @ID_Usuario
+        )
+        BEGIN
+            -- Datos
+            SELECT 
+                ID_Usuario, 
+                Nombre_Usuario, 
+                Credencial_Espacial, 
+                ID_Perfil, 
+                Estado
             FROM T_Usuarios_Intergalacticos
             WHERE ID_Usuario = @ID_Usuario;
-            SELECT 'success' AS msj_tipo, 'Exito al realizar laacción.' AS msj_texto;
-        END
 
+            -- Mensaje success
+            SELECT 
+                'success' AS msj_tipo, 
+                'Usuario encontrado.' AS msj_texto;
+        END
         ELSE
-
         BEGIN
-            SELECT 'warning' AS msj_tipo, 'No se encontraron registros.' AS msj_texto;
+            SELECT 
+                'warning' AS msj_tipo, 
+                'No se encontraron registros.' AS msj_texto;
         END
-    END
 
-END TRY
-BEGIN CATCH
-    SELECT 'error' AS msj_tipo, ERROR_MESSAGE() AS msj_texto;
-END CATCH
-
+    END TRY
+    BEGIN CATCH
+        SELECT 
+            'error' AS msj_tipo, 
+            ERROR_MESSAGE() AS msj_texto;
+    END CATCH
 
 END;
 
@@ -287,7 +304,7 @@ END;
 
      --Ejecutar SP Leer por ID
 
-     EXEC SP_LeerUsuariosPorID 8
+     EXEC SP_LeerUsuariosPorID 2
 
     GO
 
@@ -334,7 +351,7 @@ END;
 --Ejecutar SP Update
 
 EXEC SP_ActualizarUsuarios
-    @ID_Usuario = 8,
+    @ID_Usuario = 4,
     @Nombre_Usuario = 'Test',
     @Credencial_Espacial = 'ABC123',
     @ID_Perfil = 1;
@@ -352,7 +369,7 @@ BEGIN
     WHERE ID_Usuario = @ID_Usuario;
 END;
 
---Ejecutar SP Delete
+--Ejecutar SP Delete Logico
 
 EXEC SP_EliminarUsuario
     1;
