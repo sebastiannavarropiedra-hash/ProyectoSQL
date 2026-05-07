@@ -9,17 +9,23 @@ import { deleteFisico } from "../controllers/controller.js"
 const router = Router();
 
 router.get("/test", getData);
-
 //http://localhost:3002/api/test
-router.put("/update", updateUsuario);
+
+//http://localhost:3002/api/create
+router.post("/create", updateUsuario);
+
 //http://localhost:3002/api/usuarios
 router.get("/usuarios", getUsuarios);
 //http://localhost:3002/api/usuarios
 router.get("/usuarios/:id", getUsuarioById);
+
+//http://localhost:3002/api/test
+router.put("/update", updateUsuario);
+
 //http://localhost:3002/api/usuarios/
 router.delete("/deletelogico/:id", deleteLogico);
 //http://localhost:3002/api/deletelogico
-router.delete("/deletefisico/", deleteFisico);
+router.delete("/deletefisico/:id", deleteFisico);
 //http://localhost:3002/api/deletefisico
 
 export default router;
