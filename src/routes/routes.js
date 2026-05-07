@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getData } from "../controllers/controller.js"
+import { crearUsuario, getData } from "../controllers/controller.js"
 import { updateUsuario } from "../controllers/controller.js"
 import { getUsuarios } from "../controllers/controller.js"
 import { getUsuarioById } from "../controllers/controller.js"
@@ -12,7 +12,7 @@ router.get("/test", getData);
 //http://localhost:3002/api/test
 
 //http://localhost:3002/api/create
-router.post("/create", updateUsuario);
+router.post("/create", crearUsuario);
 
 //http://localhost:3002/api/usuarios
 router.get("/usuarios", getUsuarios);

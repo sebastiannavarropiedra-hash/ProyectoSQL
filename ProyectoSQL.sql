@@ -138,51 +138,62 @@ AS
 
 --- CRUD Create Procedure 
 
-CREATE or ALTER PROCEDURE SP_InsertarUsuario
+CREATE OR ALTER PROCEDURE SP_InsertarUsuario
     @Nombre_Usuario NVARCHAR(30),
     @Credencial_Espacial NVARCHAR(30),
-    @ID_Perfil INT,
-    @Estado BIT
+    @ID_Perfil INT
 AS
 BEGIN
+
     SET NOCOUNT ON;
-    --Inserta en la tabla usuarios
+
     BEGIN TRY
 
-        IF 
-        LEN(@Nombre_Usuario) = 0 OR
-        LEN(@Credencial_Espacial) = 0 OR
-        @ID_Perfil IS NULL
+        IF
+            @Nombre_Usuario IS NULL OR LEN(@Nombre_Usuario) = 0 OR
+            @Credencial_Espacial IS NULL OR LEN(@Credencial_Espacial) = 0 OR
+            @ID_Perfil IS NULL
+        BEGIN
 
-    BEGIN
-        SELECT
-            'warning' AS msj_tipo,
-            'Debes ingresar todos los datos obligatorios.' AS msj_texto;
-        RETURN;
-    END
-        ELSE
-    BEGIN
+            SELECT
+                'warning' AS msj_tipo,
+                'Debes ingresar todos los datos obligatorios.' AS msj_texto;
+
+            RETURN;
+
+        END
 
         INSERT INTO T_Usuarios_Intergalacticos
-            (Nombre_Usuario, Credencial_Espacial, ID_Perfil, Estado)
+        (
+            Nombre_Usuario,
+            Credencial_Espacial,
+            ID_Perfil,
+            Estado
+        )
         VALUES
-            (@Nombre_Usuario, @Credencial_Espacial, @ID_Perfil, @Estado);
+        (
+            @Nombre_Usuario,
+            @Credencial_Espacial,
+            @ID_Perfil,
+            1
+        );
 
-        SELECT 'success' AS msj_tipo, 'Exito al realizar la acción.' AS msj_texto;
-
-    END
+        SELECT
+            'success' AS msj_tipo,
+            'Exito al realizar la acción.' AS msj_texto;
 
     END TRY
 
+    BEGIN CATCH
 
-     BEGIN CATCH
+        SELECT
+            'error' AS msj_tipo,
+            ERROR_MESSAGE() AS msj_texto;
 
-            SELECT ''
-            SELECT 'error' AS msj_tipo, ERROR_MESSAGE() AS msj_texto;
-
-     END CATCH
+    END CATCH
 
 END;
+GO
 
     GO
 
@@ -317,34 +328,72 @@ CREATE OR ALTER PROCEDURE SP_ActualizarUsuarios
     @ID_Perfil INT
 AS
 BEGIN
-SET NOCOUNT ON;
-BEGIN TRY
-    IF @ID_Usuario IS NULL OR @ID_Usuario <= 0 OR
+
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+
+        -- Validaciones
+        IF
+            @ID_Usuario IS NULL OR
+            @ID_Usuario <= 0 OR
+            @Nombre_Usuario IS NULL OR
             LEN(LTRIM(RTRIM(@Nombre_Usuario))) = 0 OR
+            @Credencial_Espacial IS NULL OR
             LEN(LTRIM(RTRIM(@Credencial_Espacial))) = 0 OR
-            @ID_Perfil IS NULL OR @ID_Perfil <= 0
-     BEGIN
-        SELECT 'warning' AS msj_tipo, 'Debes ingresar todos los datos obligatorios.' AS msj_texto;
-     END
-    ELSE
-    IF EXISTS (SELECT 1 FROM T_Usuarios_Intergalacticos WHERE ID_Usuario = @ID_Usuario)
-    BEGIN
-        UPDATE T_Usuarios_Intergalacticos
-        SET Nombre_Usuario = @Nombre_Usuario,
-            Credencial_Espacial = @Credencial_Espacial,
-            ID_Perfil = @ID_Perfil
-        WHERE ID_Usuario = @ID_Usuario;
-        SELECT 'success' AS msj_tipo, 'Exito al realizar la acción.' AS msj_texto;
-    END
-    ELSE
-    BEGIN
-        SELECT 'warning' AS msj_tipo, 'No se encontraron registros.' AS msj_texto;
-    END
-END TRY
-BEGIN CATCH
-    SELECT 'error' AS msj_tipo, ERROR_MESSAGE() AS msj_texto;
-END CATCH
+            @ID_Perfil IS NULL OR
+            @ID_Perfil <= 0
+        BEGIN
+
+            SELECT
+                'warning' AS msj_tipo,
+                'Debes ingresar todos los datos obligatorios.' AS msj_texto;
+
+            RETURN;
+
+        END
+
+        -- Verificar existencia
+        IF EXISTS (
+            SELECT 1
+            FROM T_Usuarios_Intergalacticos
+            WHERE ID_Usuario = @ID_Usuario
+        )
+        BEGIN
+
+            UPDATE T_Usuarios_Intergalacticos
+            SET
+                Nombre_Usuario = @Nombre_Usuario,
+                Credencial_Espacial = @Credencial_Espacial,
+                ID_Perfil = @ID_Perfil
+            WHERE ID_Usuario = @ID_Usuario;
+
+            SELECT
+                'success' AS msj_tipo,
+                'Exito al realizar la acción.' AS msj_texto;
+
+        END
+        ELSE
+        BEGIN
+
+            SELECT
+                'warning' AS msj_tipo,
+                'No se encontraron registros.' AS msj_texto;
+
+        END
+
+    END TRY
+
+    BEGIN CATCH
+
+        SELECT
+            'error' AS msj_tipo,
+            ERROR_MESSAGE() AS msj_texto;
+
+    END CATCH
+
 END;
+GO
  
 
     GO
@@ -364,10 +413,62 @@ CREATE OR ALTER PROCEDURE SP_EliminarUsuario
     @ID_Usuario INT
 AS
 BEGIN
-    UPDATE T_Usuarios_Intergalacticos
-    SET Estado = 0
-    WHERE ID_Usuario = @ID_Usuario;
+
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+
+        -- Validar ID
+        IF @ID_Usuario IS NULL OR @ID_Usuario <= 0
+        BEGIN
+
+            SELECT
+                'warning' AS msj_tipo,
+                'Debes ingresar un ID válido.' AS msj_texto;
+
+            RETURN;
+
+        END
+
+        -- Verificar existencia
+        IF EXISTS (
+            SELECT 1
+            FROM T_Usuarios_Intergalacticos
+            WHERE ID_Usuario = @ID_Usuario
+              AND Estado = 1
+        )
+        BEGIN
+
+            UPDATE T_Usuarios_Intergalacticos
+            SET Estado = 0
+            WHERE ID_Usuario = @ID_Usuario;
+
+            SELECT
+                'success' AS msj_tipo,
+                'Usuario eliminado correctamente.' AS msj_texto;
+
+        END
+        ELSE
+        BEGIN
+
+            SELECT
+                'warning' AS msj_tipo,
+                'No se encontraron registros.' AS msj_texto;
+
+        END
+
+    END TRY
+
+    BEGIN CATCH
+
+        SELECT
+            'error' AS msj_tipo,
+            ERROR_MESSAGE() AS msj_texto;
+
+    END CATCH
+
 END;
+GO
 
 --Ejecutar SP Delete Logico
 
@@ -382,10 +483,60 @@ CREATE OR ALTER PROCEDURE SP_EliminarUsuarioFisico
     @ID_Usuario INT
 AS
 BEGIN
-    DELETE FROM T_Usuarios_Intergalacticos
-    WHERE ID_Usuario = @ID_Usuario;
-END;
 
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+
+        -- Validar ID
+        IF @ID_Usuario IS NULL OR @ID_Usuario <= 0
+        BEGIN
+
+            SELECT
+                'warning' AS msj_tipo,
+                'Debes ingresar un ID válido.' AS msj_texto;
+
+            RETURN;
+
+        END
+
+        -- Verificar existencia
+        IF EXISTS (
+            SELECT 1
+            FROM T_Usuarios_Intergalacticos
+            WHERE ID_Usuario = @ID_Usuario
+        )
+        BEGIN
+
+            DELETE FROM T_Usuarios_Intergalacticos
+            WHERE ID_Usuario = @ID_Usuario;
+
+            SELECT
+                'success' AS msj_tipo,
+                'Usuario eliminado físicamente.' AS msj_texto;
+
+        END
+        ELSE
+        BEGIN
+
+            SELECT
+                'warning' AS msj_tipo,
+                'No se encontraron registros.' AS msj_texto;
+
+        END
+
+    END TRY
+
+    BEGIN CATCH
+
+        SELECT
+            'error' AS msj_tipo,
+            ERROR_MESSAGE() AS msj_texto;
+
+    END CATCH
+
+END;
+GO
 --Ejecutar SP Delete Fisico
 
 EXEC SP_EliminarUsuarioFisico
